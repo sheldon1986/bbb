@@ -1,0 +1,212 @@
+resources:
+# developer branch resource
+  - name: repo-dev
+    type: git
+    source:
+      uri: [git uri]
+      branch: repo-dev
+      private_key: {{github-private-key}}
+    check_every: 10s # for demo
+# staging branch resource
+  - name: repo-stg
+    type: git
+    source:
+      uri: [git uri]
+      branch: staging
+      private_key: {{github-private-key}}
+    check_every: 10s # for demo
+# master branch resource
+  - name: repo-master
+    type: git
+    source:
+      uri: [git uri]
+      branch: master
+      private_key: {{github-private-key}}
+    check_every: 10s # for demo
+# cf push to prod PAS
+  - name: cf-prod
+    type: cf
+    source:
+      api: {{cf-api}}
+      username: {{cf-username}}
+      password: {{cf-password}}
+      organization: {{cf-org-prod}}
+      space: {{cf-space-prod}}
+      skip_cert_check: true
+# cf push to stg PAS
+  - name: cf-staging
+    type: cf
+    source:
+      api: {{cf-api}}
+      username: {{cf-username}}
+      password: {{cf-password}}
+      organization: {{cf-org-stg}}
+      space: {{cf-space-staging}}
+      skip_cert_check: true
+# cf push to dev PAS
+  - name: cf-dev
+    type: cf
+    source:
+      api: {{cf-api}}
+      username: {{cf-username}}
+      password: {{cf-password}}
+      organization: {{cf-org-dev}}
+      space: {{cf-space-dev}}
+      skip_cert_check: true
+# maven build resource  
+  - name: m2
+    type: docker-image
+    source:
+      repository: making/m2
+
+jobs:
+  - name: test-develop
+    serial: true
+    public: true
+    plan:
+      - aggregate:
+        - get: repo
+          resource: repo-dev
+          trigger: true
+        - get: m2
+      - task: unit
+        file: repo/ci/tasks/unit.yml
+
+  - name: deploy-develop
+    serial: true
+    public: false
+    plan:
+      - aggregate:
+        - get: m2
+        - get:  repo
+          resource: repo-dev
+          passed: [ test-develop ]
+          trigger: true
+      - task: build
+        file: repo/ci/tasks/build.yml
+      - put: cf-dev
+        params:
+          manifest: repo/manifest-dev.yml
+          path: output/demo.jar
+          current_app_name: repo-dev-dev
+
+  - name: pass-dev
+    plan:
+      - aggregate:
+              #        - get: repo
+              #          resource: repo-develop
+        - get: cf-dev
+          passed: [ deploy-develop ]
+          trigger: false
+          #        - get: repo
+          #          resource: repo-stg
+        - get: repo-dev
+
+  - name: merge-dev-to-staging
+    public: true
+    plan:
+      - aggregate:
+        - get: repo
+          resource: repo-dev
+        - get: repo-dev
+          passed: [ pass-dev ]
+          trigger: true
+      - task: merge-dev-to-stg
+        file: repo/ci/tasks/repo-dev.yml
+        params:
+          GIT_EMAIL: {{git-email}}
+          GIT_NAME: {{git-name}}
+      - put: repo
+        resource: repo-stg
+        params:
+          repository: out
+
+  - name: test-stg
+    serial: true
+    public: true
+    plan:
+      - aggregate:
+        - get: repo
+          resource: repo-stg
+          passed: [ merge-dev-to-staging ]
+          trigger: true
+        - get: m2
+      - task: unit
+        file: repo/ci/tasks/unit.yml
+
+  - name: deploy-staging
+    serial: true
+    public: false
+    plan:
+      - aggregate:
+        - get: m2
+        - get:  repo
+          resource: repo-stg
+          passed: [ test-stg ]
+          trigger: true
+      - task: build
+        file: repo/ci/tasks/build.yml
+      - put: cf-staging
+        params:
+          manifest: repo/manifest-staging.yml
+          path: output/demo.jar
+          current_app_name: repo-dev-stg
+
+  - name: pass-stg
+    plan:
+      - aggregate:
+        - get: repo
+          resource: repo-stg
+        - get: cf-staging
+          passed: [ deploy-staging ]
+          trigger: false
+
+  - name: merge-release-to-master
+    public: true
+    plan:
+      - aggregate:
+        - get: repo
+          resource: repo-stg
+        - get: repo-stg
+          passed: [ pass-stg ]
+          trigger: true
+      - task: merge-release-to-master
+        file: repo/ci/tasks/merge-release-branch.yml
+        params:
+          GIT_EMAIL: {{git-email}}
+          GIT_NAME: {{git-name}}
+      - put: repo
+        resource: repo-master
+        params:
+          repository: out
+
+  - name: test-master
+    serial: true
+    public: true
+    plan:
+      - aggregate:
+        - get: repo
+          resource: repo-master
+          passed: [ merge-release-to-master ]
+          trigger: true
+        - get: m2
+      - task: unit
+        file: repo/ci/tasks/unit.yml
+
+  - name: deploy-prod
+    serial: true
+    public: false
+    plan:
+      - aggregate:
+        - get: m2
+        - get:  repo
+          resource: repo-master
+          passed: [ test-master ]
+          trigger: true
+      - task: build
+        file: repo/ci/tasks/build.yml
+      - put: cf-prod
+        params:
+          manifest: repo/manifest.yml
+          path: output/demo.jar
+          current_app_name: repo-dev-prod
