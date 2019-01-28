@@ -6,5 +6,6 @@ mv -f ../repo/* ./
 git config --global user.email "${GIT_EMAIL}"
 git config --global user.name "${GIT_NAME}"
 git remote add -f dev-v0.09_peter ../dev-v0.09_peter
+git pull origin staging
 git merge --no-edit dev-v0.09_peter/dev-v0.09_peter
 
