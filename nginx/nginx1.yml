@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: simple-http
-        image: nginx:1.17.6-alpine
+        image: registry.kurlycorp.kr/baseimages/nginx:stable-alpine
         imagePullPolicy: IfNotPresent
         ports:
         - name: http
