@@ -1,5 +1,7 @@
-kind: Deployment
-apiVersion: apps/v1
+#kind: Deployment
+#apiVersion: apps/v1
+kind: Rollout
+apiVersion: argoproj.io/v1alpha1
 metadata:
   name: nginx-deployment-1
 spec:
@@ -19,3 +21,11 @@ spec:
         ports:
         - name: http
           containerPort: 80
+  strategy:
+  # ----- Everything above this comment are the same as a deployment -----
+    blueGreen: # A new field for the Blue Green strategy options
+      previewService: nginx_pod_1-prv # Reference to a service
+      activeService: nginx_pod_1 # Reference to a service
+      autoPromotionEnabled: true
+      previewReplicaCount: 1
+      scaleDownDelaySeconds: 120  #전환후 이전 active pod 삭제 대기 시간

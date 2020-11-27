@@ -1,14 +1,14 @@
-apiVersion: v1
-kind: Service
-metadata:
-  name: clusterip-service-1
-spec:
-  selector:
-    app: nginx_pod_1
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 80
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: clusterip-service-1
+#spec:
+#  selector:
+#    app: nginx_pod_1
+#  ports:
+#    - protocol: TCP
+#      port: 80
+#      targetPort: 80
 #---
 #apiVersion: v1
 #kind: Service
@@ -21,3 +21,33 @@ spec:
 #    - protocol: TCP
 #      port: 80
 #      targetPort: 80
+#
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: nginx_pod_1
+    service: nginx_pod_1
+  name: nginx_pod_1
+spec:
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+  selector:
+    app: nginx_pod_1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: nginx_pod_1-prv
+    service: nginx_pod_1-prv
+  name: nginx_pod_1-prv
+spec:
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+  selector:
+    app: nginx_pod_1
