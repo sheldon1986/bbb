@@ -8,14 +8,14 @@ spec:
   replicas: 2
   selector:
     matchLabels:
-      app: nginx_pod_1
+      app: nginx-pod-1
   template:
     metadata:
       labels:
-        app: nginx_pod_1
+        app: nginx-pod-1
     spec:
       containers:
-      - name: simple-http
+      - name: nginx_pod_1
         image: registry.kurlycorp.kr/baseimages/nginx:stable-alpine
         imagePullPolicy: IfNotPresent
         ports:
@@ -24,8 +24,8 @@ spec:
   strategy:
   # ----- Everything above this comment are the same as a deployment -----
     blueGreen: # A new field for the Blue Green strategy options
-      previewService: nginx_pod_1-prv # Reference to a service
-      activeService: nginx_pod_1 # Reference to a service
+      previewService: nginx-pod-1-prv # Reference to a service
+      activeService: nginx-pod-1 # Reference to a service
       autoPromotionEnabled: true
       previewReplicaCount: 1
       scaleDownDelaySeconds: 120  #전환후 이전 active pod 삭제 대기 시간
