@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: canary-rollouts-demo
-        image: registry.kurlycorp.kr/baseimages/nginx:4
+        image: registry.kurlycorp.kr/baseimages/nginx:5
         imagePullPolicy: Always
         ports:
         - containerPort: 80
