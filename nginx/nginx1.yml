@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: nginx-pod-1
-        image: registry.kurlycorp.kr/baseimages/nginx:latest
+        image: registry.kurlycorp.kr/baseimages/nginx:stable-alpine
         imagePullPolicy: IfNotPresent
         ports:
         - name: http
