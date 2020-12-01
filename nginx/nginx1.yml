@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: nginx-pod-1
-        image: registry.kurlycorp.kr/baseimages/nginx:stable-alpine
+        image: registry.kurlycorp.kr/baseimages/nginx:4
         imagePullPolicy: IfNotPresent
         ports:
         - name: http
@@ -28,4 +28,4 @@ spec:
       activeService: nginx-pod-1 # Reference to a service
       autoPromotionEnabled: true
       previewReplicaCount: 1
-      scaleDownDelaySeconds: 120  #전환후 이전 active pod 삭제 대기 시간
+      scaleDownDelaySeconds: 60  #전환후 이전 active pod 삭제 대기 시간
