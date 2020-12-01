@@ -1,5 +1,3 @@
-Source Code : https://github.com/teichae/gitops/blob/main/rollout/test.yaml
-
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout
